@@ -46,6 +46,10 @@ public class MenuService {
     private final TradeDtoJsonConverter tradeDtoJsonConverter = new TradeDtoJsonConverter("trade.json");
     private final CategoryDtoJsonConverter categoryDtoJsonConverter = new CategoryDtoJsonConverter("category.json");
 
+    private final CountriesDtoJsonConverter countriesDtoJsonConverter = new CountriesDtoJsonConverter("countries.json");
+    private final CategoriesDtoJsonConverter categoriesDtoJsonConverter = new CategoriesDtoJsonConverter("categories.json");
+    private final TradesDtoJsonConverter tradesDtoJsonConverter = new TradesDtoJsonConverter("trades.json");
+
     private UserDataService userDataService = new UserDataService();
     private final ErrorService errorService = new ErrorService(errorRepository);
 
@@ -70,15 +74,30 @@ public class MenuService {
                             option3();
                             break;
                         case "4":
-                            //option4();
+                            option4();
                             break;
                         case "5":
-                            //option5();
+                            option5();
                             break;
                         case "6":
-                            //option6();
+                            option6();
                             break;
                         case "7":
+                            option7();
+                            break;
+                        case "8":
+                            option8();
+                            break;
+                        case "9":
+                            option9();
+                            break;
+                        case "10":
+                            option10();
+                            break;
+                        case "11":
+                            option11();
+                            break;
+                        case "12":
                             userDataService.close();
                             System.out.println("The End");
                             return;
@@ -103,11 +122,21 @@ public class MenuService {
         System.out.println("2 - Show all records of database.");
         System.out.println("3 - Edit record in database.");
 
-        System.out.println("4 - Show all movies.");
-        System.out.println("5 - Buy a ticket.");
-        System.out.println("6 - Show customer's purchase history.");
+        System.out.println("4 - Show map of products with maximum price in categories and order number.");
+        System.out.println("5 - Show products ordered by customers from country and of age between.");
+        System.out.println("6 - Show orders between dates and price above.");
 
-        System.out.println("7 - Exit");
+        System.out.println("7 - Show customers who ordered at least one product from country of origin");
+
+        System.out.println("8 - Show producers by trade name which produced more than");
+
+        System.out.println("9 - Show products ordered by customer grouped by producer");
+
+        System.out.println("10 - Show shops with products from other countries");
+
+        System.out.println("11 - Data initialization.");
+
+        System.out.println("12 - Exit");
     }
 
     private void option1() {
@@ -519,4 +548,68 @@ public class MenuService {
 
         System.out.println("10 - Return");
     }
+
+    public void option4(){
+
+        customerOrderService.getMapOfProductsWithMaxPriceInCategoriesAndOrderNumber().forEach(
+                (k,v)-> System.out.println(productDtoJsonConverter.toJson(k)+" "+v)
+        );
+
+    }
+
+    public void option5(){
+
+        customerOrderService.getProductsOrderedByCustomersFromCountryAndOfAgeBetween(
+                userDataService.getString("Enter country name:","[A-Z ]+"),
+                userDataService.getInt("Enter age from:"),
+                userDataService.getInt("Enter age to:")
+        ).forEach(product -> System.out.println(productDtoJsonConverter.toJson(product)));
+    }
+
+    public void option6(){
+        customerOrderService.getOrdersBetweenDatesAndPriceAbove(
+                userDataService.getDate("Enter date from:"),
+                userDataService.getDate("Enter date to:"),
+                userDataService.getBigDecimal("Enter price:")
+        ).forEach(customerOrderDto -> System.out.println(customerOrderDtoJsonConverter.toJson(customerOrderDto)));
+
+    }
+
+    public void option7(){
+        customerService.getCustomersWhoOrderedAtLeastOneProductFromCountryOfOrigin()
+                .forEach(customerDto -> System.out.println(customerDtoJsonConverter.toJson(customerDto)));
+    }
+
+    public void option8(){
+
+        producerService.getProducersByTradeNameWhichProducedMoreThan(
+                userDataService.getString("Enter trade name:","[A-Z ]+"),
+                userDataService.getInt("Enter integer:"))
+                .forEach(producerDto -> System.out.println(producerDtoJsonConverter.toJson(producerDto)));
+
+    }
+
+    public void option9() {
+
+        productService.getProductsOrderedByCustomerGroupedByProducer(
+                userDataService.getString("Enter customer name:","[A-Z ]+"),
+                userDataService.getString("Enter customer surname:","[A-Z ]+"),
+                userDataService.getString("Enter country name:","[A-Z ]+")
+        ).forEach(product -> System.out.println(productDtoJsonConverter.toJson(product)));
+
+    }
+
+    public void option10(){
+        shopService.getShopsWithProductsFromOtherCountries().forEach(
+                shopDto -> System.out.println(shopDtoJsonConverter.toJson(shopDto))
+        );
+    }
+
+    public void option11(){
+
+        countriesDtoJsonConverter.fromJson().ifPresent(countryDtos -> countryDtos.stream().forEach(countryService::addCountry));
+        categoriesDtoJsonConverter.fromJson().ifPresent(categoryDtos -> categoryDtos.stream().forEach(categoryService::addCategory));
+        tradesDtoJsonConverter.fromJson().ifPresent(tradeDtos -> tradeDtos.stream().forEach(tradeService::addTrade));
+    }
+
 }

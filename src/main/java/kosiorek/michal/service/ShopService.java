@@ -68,13 +68,6 @@ public class ShopService {
 
     public List<ShopDto> getShopsWithProductsFromOtherCountries(){
 
-        // najpierw zostaw zamowienia, ktore maja w sobie rozny kraj produktu oraz shop
-        // select * from producer pr join product p on pr.id = p.producer_id join stock s on p.id = s.product_id join shop sh on s.shop_id = sh.id;
-
-        // jpql
-        // select distinct s from stock s join s.product p join pr.producer pr join s.shop sh join pr.country pr_c join shop.country s_c where pr.c.id = s_c.id;
-        // teraz stosujac strumien przemapuj na strumien shop i potem distinct
-
         List<Stock> stocks = stockRepository.findStocksWithProductsFromOtherCountries();
 
         return stocks.stream().map(Stock::getShop).distinct()
