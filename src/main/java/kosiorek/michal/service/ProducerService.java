@@ -116,4 +116,17 @@ public class ProducerService {
 
     }
 
+    public ProducerDto editProducer(ProducerDto producerDto){
+
+        if(producerDto == null){
+            throw new AppException("editing producer - producer object null");
+        }
+
+        Producer producer = ModelMapper.fromProducerDtoToProducer(producerDto);
+
+       return producerRepository.addOrUpdate(producer).map(ModelMapper::fromProducerToProducerDto)
+                .orElseThrow(() -> new AppException("editing producer - exception while editing"));
+
+    }
+
 }

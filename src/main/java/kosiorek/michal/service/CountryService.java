@@ -51,4 +51,18 @@ public class CountryService {
 
     }
 
+    public CountryDto editCountry(CountryDto countryDto){
+
+        if(countryDto==null) {
+            throw new AppException("edit country - country object is null");
+        }
+
+        Country country = ModelMapper.fromCountryDtoToCountry(countryDto);
+
+        return countryRepository.addOrUpdate(country)
+                .map(ModelMapper::fromCountryToCountryDto)
+                .orElseThrow(() -> new AppException("editing country - exception while editing country"));
+
+    }
+
 }

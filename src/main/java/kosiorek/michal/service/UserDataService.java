@@ -2,6 +2,7 @@ package kosiorek.michal.service;
 
 import kosiorek.michal.dto.*;
 import kosiorek.michal.exceptions.AppException;
+import kosiorek.michal.model.CustomerOrder;
 import kosiorek.michal.model.enums.EGuarantee;
 
 import java.math.BigDecimal;
@@ -147,6 +148,32 @@ public class UserDataService {
         displayList(shopDtos.stream().map(ShopDto::getName).collect(Collectors.toList()));
         int option = getInt("Enter number of shop:");
         return shopDtos.get(option - 1);
+    }
+
+    public CustomerOrderDto getCustomerOrderDto(List<CustomerOrderDto> customerOrderDtos){
+        displayList(customerOrderDtos.stream()
+                .map(customerOrderDto -> customerOrderDto.getDate().toString()+" "+
+                        customerOrderDto.getCustomerDto().getName()+" "+
+                        customerOrderDto.getProductDto().getName()+ " "+
+                        customerOrderDto.getQuantity()+" "+
+                        customerOrderDto.getDiscount()
+                ).collect(Collectors.toList()));
+        int option = getInt("Enter number of customer order:");
+        return customerOrderDtos.get(option - 1);
+
+    }
+
+    public StockDto getStockDto(List<StockDto> stockDtos){
+
+        displayList(stockDtos.stream()
+                .map(stockDto -> stockDto.getShopDto().getName()+" "+
+                        stockDto.getProductDto().getName()+" "+
+                        stockDto.getQuantity()
+                        ).collect(Collectors.toList()));
+
+        int option = getInt("Enter number of stock:");
+        return stockDtos.get(option - 1);
+
     }
 
 }

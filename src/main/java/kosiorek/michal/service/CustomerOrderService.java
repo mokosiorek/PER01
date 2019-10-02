@@ -62,8 +62,8 @@ public class CustomerOrderService {
         }
 
         CustomerOrderDtoValidator customerOrderDtoValidator = new CustomerOrderDtoValidator();
-        Map<String,String> errors = customerOrderDtoValidator.validate(customerOrderDto);
-        if(customerOrderDtoValidator.hasErrors()){
+        Map<String, String> errors = customerOrderDtoValidator.validate(customerOrderDto);
+        if (customerOrderDtoValidator.hasErrors()) {
             throw new AppException("add customer order - customer order validation not correct " + errors.toString());
         }
 
@@ -80,7 +80,7 @@ public class CustomerOrderService {
 
         //Check if there is enough product in stock worldwide.
         if (customerOrderDto.getQuantity() > stocks.stream().map(Stock::getQuantity).reduce(0, Integer::sum)) {
-                throw new AppException("add customer order - not enough products in stock worldwide");
+            throw new AppException("add customer order - not enough products in stock worldwide");
         } else {
 
             List<Stock> stocksInCountry = stockRepository.findAllStocksWithProductInCountry(productDto.getName(), customerDto.getCountryDto().getName());
@@ -89,29 +89,27 @@ public class CustomerOrderService {
 
             for (Stock s : stocksInCountry) {
 
-               if(s.getQuantity()>=quantityOrdered){
-                   s.setQuantity(s.getQuantity()-quantityOrdered);
-                   stockRepository.addOrUpdate(s);
-                   break;
-               }
-               else{
-                   s.setQuantity(0);
-                   quantityOrdered = quantityOrdered - s.getQuantity();
-                   stockRepository.addOrUpdate(s);
-               }
+                if (s.getQuantity() >= quantityOrdered) {
+                    s.setQuantity(s.getQuantity() - quantityOrdered);
+                    stockRepository.addOrUpdate(s);
+                    break;
+                } else {
+                    s.setQuantity(0);
+                    quantityOrdered = quantityOrdered - s.getQuantity();
+                    stockRepository.addOrUpdate(s);
+                }
             }
-            if(quantityOrdered>0){
+            if (quantityOrdered > 0) {
 
-                List<Stock> stocksOutsideOfCountry = stockRepository.findAllStocksWithProductOutsideCountry(productDto.getName(),customerDto.getCountryDto().getName());
+                List<Stock> stocksOutsideOfCountry = stockRepository.findAllStocksWithProductOutsideCountry(productDto.getName(), customerDto.getCountryDto().getName());
 
                 for (Stock s : stocksOutsideOfCountry) {
 
-                    if(s.getQuantity()>=quantityOrdered){
-                        s.setQuantity(s.getQuantity()-quantityOrdered);
+                    if (s.getQuantity() >= quantityOrdered) {
+                        s.setQuantity(s.getQuantity() - quantityOrdered);
                         stockRepository.addOrUpdate(s);
                         break;
-                    }
-                    else{
+                    } else {
                         s.setQuantity(0);
                         quantityOrdered = quantityOrdered - s.getQuantity();
                         stockRepository.addOrUpdate(s);
@@ -133,28 +131,26 @@ public class CustomerOrderService {
     }
 
 
-    public Map<ProductDto,Long> getMapOfProductsWithMaxPriceInCategoriesAndOrderNumber()
-    {
+    public Map<ProductDto, Long> getMapOfProductsWithMaxPriceInCategoriesAndOrderNumber() {
         List<CustomerOrder> customerOrders = customerOrderRepository.findAllOrdersWithProductsOfMaxPriceInCategories();
 
         return customerOrders.stream().map(ModelMapper::fromCustomerOrderToCustomerOrderDto).collect(Collectors.groupingBy(CustomerOrderDto::getProductDto, Collectors.counting()));
 
     }
 
-    public List<ProductDto> getProductsOrderedByCustomersFromCountryAndOfAgeBetween(String countryName, Integer ageFrom, Integer ageTo)
-    {
+    public List<ProductDto> getProductsOrderedByCustomersFromCountryAndOfAgeBetween(String countryName, Integer ageFrom, Integer ageTo) {
 
-        if(countryName == null){
+        if (countryName == null) {
             throw new AppException("get All Products Ordered By Customers From Country And Of Age Between - country name null");
         }
 
-        if(ageFrom.compareTo(ageTo)>0){
+        if (ageFrom.compareTo(ageTo) > 0) {
             throw new AppException("get All Products Ordered By Customers From Country And Of Age Between - ageTo can't be smaller than ageFrom");
         }
 
-        List<CustomerOrder> customerOrders = customerOrderRepository.findAllOrdersOrderedByCustomersFromCountryAndOfAgeBetween(countryName,ageFrom,ageTo);
+        List<CustomerOrder> customerOrders = customerOrderRepository.findAllOrdersOrderedByCustomersFromCountryAndOfAgeBetween(countryName, ageFrom, ageTo);
 
-        return  customerOrders.stream()
+        return customerOrders.stream()
                 .map(CustomerOrder::getProduct)
                 .distinct()
                 .sorted(Comparator.comparing(Product::getPrice).reversed())
@@ -163,25 +159,39 @@ public class CustomerOrderService {
 
     }
 
-    public List<CustomerOrderDto> getOrdersBetweenDatesAndPriceAbove(LocalDate dateFrom, LocalDate dateTo, BigDecimal amount){
+    public List<CustomerOrderDto> getOrdersBetweenDatesAndPriceAbove(LocalDate dateFrom, LocalDate dateTo, BigDecimal amount) {
 
-        if(amount == null){
+        if (amount == null) {
             throw new AppException("get All Orders Between Dates and price above -  amount null");
         }
 
-        if(dateFrom.compareTo(dateTo)>0){
+        if (dateFrom.compareTo(dateTo) > 0) {
             throw new AppException("get All Orders Between Dates and price above - dateTo can't be smaller than dateFrom");
         }
 
-        return customerOrderRepository.findOrdersWithDateBetweenAndTotalPriceAbove(dateFrom,dateTo,amount).stream()
+        return customerOrderRepository.findOrdersWithDateBetweenAndTotalPriceAbove(dateFrom, dateTo, amount).stream()
                 .map(ModelMapper::fromCustomerOrderToCustomerOrderDto)
                 .collect(Collectors.toList());
     }
 
-    public List<CustomerOrderDto> getAllCustomerOrders(){
-       return customerOrderRepository.findAll().stream()
+    public List<CustomerOrderDto> getAllCustomerOrders() {
+        return customerOrderRepository.findAll().stream()
                 .map(ModelMapper::fromCustomerOrderToCustomerOrderDto)
                 .collect(Collectors.toList());
+    }
+
+    public CustomerOrderDto editCustomerOrder(CustomerOrderDto customerOrderDto) {
+
+        if (customerOrderDto == null) {
+            throw new AppException("customer order edit - customer order object null");
+        }
+
+        CustomerOrder customerOrder = ModelMapper.fromCustomerOrderDtoToCustomerOrder(customerOrderDto);
+         return customerOrderRepository.addOrUpdate(customerOrder)
+                 .map(ModelMapper::fromCustomerOrderToCustomerOrderDto)
+                 .orElseThrow(() -> new AppException("editing customer order - exception while editing"));
+
+
     }
 
 }

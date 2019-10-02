@@ -129,4 +129,17 @@ public class ProductService {
 
     }
 
+    public ProductDto editProduct(ProductDto productDto){
+
+        if(productDto==null){
+            throw new AppException("edit product - product object null");
+        }
+
+        Product product = ModelMapper.fromProductDtoToProduct(productDto);
+
+        return productRepository.addOrUpdate(product).map(ModelMapper::fromProductToProductDto)
+                .orElseThrow(() -> new AppException("editing category - exception while editing category"));
+
+    }
+
 }

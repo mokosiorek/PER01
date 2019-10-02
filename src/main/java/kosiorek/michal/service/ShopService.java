@@ -89,4 +89,16 @@ public class ShopService {
               .collect(Collectors.toList());
     }
 
+    public ShopDto editShop(ShopDto shopDto){
+
+        if(shopDto==null){
+            throw new AppException("edit shop - shop object null");
+        }
+
+        Shop shop = ModelMapper.fromShopDtoToShop(shopDto);
+        return shopRepository.addOrUpdate(shop).map(ModelMapper::fromShopToShopDto)
+                .orElseThrow(() -> new AppException("editing category - exception while editing category"));
+
+    }
+
 }

@@ -92,4 +92,17 @@ public class StockService {
 
     }
 
+    public StockDto editStock(StockDto stockDto){
+        if(stockDto==null){
+            throw new AppException("edit stock - stock object null");
+        }
+
+        Stock stock = ModelMapper.fromStockDtoToStock(stockDto);
+
+        return stockRepository.addOrUpdate(stock).map(ModelMapper::fromStockToStockDto)
+                .orElseThrow(() -> new AppException("editing stock - exception while editing stock"));
+
+
+    }
+
 }

@@ -3,6 +3,7 @@ package kosiorek.michal.service;
 import kosiorek.michal.dto.*;
 import kosiorek.michal.exceptions.AppException;
 import kosiorek.michal.jsonconverters.*;
+import kosiorek.michal.model.CustomerOrder;
 import kosiorek.michal.repository.impl.*;
 
 import java.time.LocalDate;
@@ -43,6 +44,7 @@ public class MenuService {
     private final ShopDtoJsonConverter shopDtoJsonConverter = new ShopDtoJsonConverter("shop.json");
     private final StockDtoJsonConverter stockDtoJsonConverter = new StockDtoJsonConverter("stock.json");
     private final TradeDtoJsonConverter tradeDtoJsonConverter = new TradeDtoJsonConverter("trade.json");
+    private final CategoryDtoJsonConverter categoryDtoJsonConverter = new CategoryDtoJsonConverter("category.json");
 
     private UserDataService userDataService = new UserDataService();
     private final ErrorService errorService = new ErrorService(errorRepository);
@@ -65,7 +67,7 @@ public class MenuService {
                             option2();
                             break;
                         case "3":
-                            // option3();
+                            option3();
                             break;
                         case "4":
                             //option4();
@@ -209,6 +211,13 @@ public class MenuService {
                             break;
 
                         case "9":
+
+                            categoryService.addCategory(CategoryDto.builder()
+                                    .name(userDataService.getString("Enter category name:","[A-Z ]+"))
+                                    .build());
+                            break;
+
+                        case "10":
                             return;
                         default:
                             System.out.println("Invalid option in menu. Enter number again.");
@@ -235,8 +244,9 @@ public class MenuService {
         System.out.println("6 - Add new shop.");
         System.out.println("7 - Add new stock.");
         System.out.println("8 - Add new trade.");
+        System.out.println("9 - Add new category.");
 
-        System.out.println("9 - Return");
+        System.out.println("10 - Return");
     }
 
     public void option2() {
@@ -308,6 +318,13 @@ public class MenuService {
                             break;
 
                         case "9":
+                            categoryService.getAllCategories().stream()
+                                    .map(categoryDtoJsonConverter::toJson)
+                                    .forEach(System.out::println);
+                            break;
+
+
+                        case "10":
                             return;
                         default:
                             System.out.println("Invalid option in menu. Enter number again.");
@@ -333,8 +350,173 @@ public class MenuService {
         System.out.println("6 - Show all shops.");
         System.out.println("7 - Show all stocks.");
         System.out.println("8 - Show all trades.");
+        System.out.println("9 - Show all categories.");
 
-        System.out.println("9 - Return");
+        System.out.println("10 - Return");
     }
 
+    private void option3() {
+
+        int option;
+        String menu;
+        while (true) {
+            try {
+                do {
+                    displayMenuOfEditingRecord();
+                    menu = userDataService.getString("Enter number:", "");
+
+                    switch (menu) {
+                        case "1":
+
+                            List<CountryDto> countries = countryService.getAllCountries();
+                            CountryDto countryDto = userDataService.getCountryDto(countries);
+                            countryDto.setName(userDataService.getString("Enter new country name:", "[A-Z ]+"));
+                            countryService.editCountry(countryDto);
+
+                            break;
+                        case "2":
+
+                            List<CustomerDto> customerDtos = customerService.getAllCustomers();
+                            List<CountryDto> countries2 = countryService.getAllCountries();
+
+                            CustomerDto customerDto = userDataService.getCustomerDto(customerDtos);
+                            customerDto.setName(userDataService.getString("Enter new customer name:","[A-Z ]+" ));
+                            customerDto.setAge(userDataService.getInt("Enter new customer age:"));
+                            customerDto.setCountryDto(userDataService.getCountryDto(countries2));
+
+                            customerService.editCustomer(customerDto);
+
+                            break;
+
+                        case "3":
+
+                            List<CustomerOrderDto> customerOrderDtos = customerOrderService.getAllCustomerOrders();
+
+                            List<CustomerDto> customerDtos2 = customerService.getAllCustomers();
+                            List<ProductDto> productDtos = productService.getAllProducts();
+                            List<PaymentDto> paymentDtos = paymentService.getAllPayments();
+
+                            CustomerOrderDto customerOrderDto = userDataService.getCustomerOrderDto(customerOrderDtos);
+                            customerOrderDto.setDate(userDataService.getDate("Enter new customer order date:"));
+                            customerOrderDto.setCustomerDto(userDataService.getCustomerDto(customerDtos2));
+                            customerOrderDto.setProductDto(userDataService.getProductDto(productDtos));
+                            customerOrderDto.setPaymentDto(userDataService.getPaymentDto(paymentDtos));
+                            customerOrderDto.setDiscount(userDataService.getBigDecimal("Enter new customer order discount value:"));
+                            customerOrderDto.setQuantity(userDataService.getInt("Enter new customer order quantity:"));
+
+                            customerOrderService.editCustomerOrder(customerOrderDto);
+                            break;
+
+                        case "4":
+
+                            List<ProducerDto> producerDtos = producerService.getAllProducers();
+                            List<CountryDto> countries3 = countryService.getAllCountries();
+                            List<TradeDto> tradeDtos = tradeService.getAllTrades();
+
+                            ProducerDto producerDto = userDataService.getProducerDto(producerDtos);
+                            producerDto.setName(userDataService.getString("Enter new producer name:","[A-Z ]+"));
+                            producerDto.setCountryDto(userDataService.getCountryDto(countries3));
+                            producerDto.setTradeDto(userDataService.getTradeDto(tradeDtos));
+
+                            producerService.editProducer(producerDto);
+
+                            break;
+
+                        case "5":
+
+                            List<ProductDto> productDtos1 = productService.getAllProducts();
+                            List<ProducerDto> producerDtos2 = producerService.getAllProducers();
+                            List<CategoryDto> categoryDtos = categoryService.getAllCategories();
+
+                            ProductDto productDto = userDataService.getProductDto(productDtos1);
+                            productDto.setName(userDataService.getString("Enter new product name","[A-Z ]+"));
+                            productDto.setPrice(userDataService.getBigDecimal("Enter new price:"));
+                            productDto.setCategoryDto(userDataService.getCategoryDto(categoryDtos));
+                            productDto.setProducerDto(userDataService.getProducerDto(producerDtos2));
+                            productDto.setEGuarantees(userDataService.getEGuaranteeSet());
+
+                            productService.editProduct(productDto);
+
+                            break;
+
+                        case "6":
+
+                            List<ShopDto> shopDtos = shopService.getAllShops();
+                            List<CountryDto> countries4 = countryService.getAllCountries();
+
+                            ShopDto shopDto = userDataService.getShopDto(shopDtos);
+                            shopDto.setName(userDataService.getString("Enter new shop name:","[A-Z ]+"));
+                            shopDto.setCountryDto(userDataService.getCountryDto(countries4));
+
+                            shopService.editShop(shopDto);
+
+                            break;
+
+                        case "7":
+
+                            List<StockDto> stockDtos = stockService.getAllStocks();
+                            List<ProductDto> productDtos2 = productService.getAllProducts();
+                            List<ShopDto> shopDtos2 = shopService.getAllShops();
+
+                            StockDto stockDto = userDataService.getStockDto(stockDtos);
+                            stockDto.setShopDto(userDataService.getShopDto(shopDtos2));
+                            stockDto.setProductDto(userDataService.getProductDto(productDtos2));
+                            stockDto.setQuantity(userDataService.getInt("Enter integer:"));
+
+                            stockService.editStock(stockDto);
+
+                            break;
+
+                        case "8":
+
+                            List<TradeDto> tradeDtos1 = tradeService.getAllTrades();
+
+                            TradeDto tradeDto = userDataService.getTradeDto(tradeDtos1);
+                            tradeDto.setName(userDataService.getString("Enter trade name:","[A-Z ]+"));
+
+                            tradeService.editTrade(tradeDto);
+
+                            break;
+
+                        case "9":
+
+                            List<CategoryDto> categoryDtos1 = categoryService.getAllCategories();
+
+                            CategoryDto categoryDto = userDataService.getCategoryDto(categoryDtos1);
+                            categoryDto.setName(userDataService.getString("Enter category name","[A-Z ]+"));
+
+                            categoryService.editCategory(categoryDto);
+
+                            break;
+
+                        case "10":
+                            return;
+                        default:
+                            System.out.println("Invalid option in menu. Enter number again.");
+                            break;
+                    }
+                } while (true);
+
+            } catch (AppException e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+    }
+
+    private void displayMenuOfEditingRecord() {
+
+        System.out.println("Menu - enter the number:");
+        System.out.println("1 - Edit country.");
+        System.out.println("2 - Edit customer.");
+        System.out.println("3 - Edit customer order.");
+        System.out.println("4 - Edit producer.");
+        System.out.println("5 - Edit product.");
+        System.out.println("6 - Edit shop.");
+        System.out.println("7 - Edit stock.");
+        System.out.println("8 - Edit trade.");
+        System.out.println("9 - Edit category.");
+
+        System.out.println("10 - Return");
+    }
 }

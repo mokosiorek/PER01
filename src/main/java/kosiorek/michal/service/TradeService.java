@@ -1,5 +1,6 @@
 package kosiorek.michal.service;
 
+import kosiorek.michal.App;
 import kosiorek.michal.dto.TradeDto;
 import kosiorek.michal.exceptions.AppException;
 import kosiorek.michal.model.Trade;
@@ -16,23 +17,23 @@ public class TradeService {
 
     private final TradeRepository tradeRepository;
 
-    public TradeDto addTrade(TradeDto tradeDto){
+    public TradeDto addTrade(TradeDto tradeDto) {
 
-        if(tradeDto==null){
+        if (tradeDto == null) {
             throw new AppException("add trade - trade object null");
         }
 
-        if(tradeDto.getName()==null){
+        if (tradeDto.getName() == null) {
             throw new AppException("add trade - trade name object null");
         }
 
         TradeDtoValidator tradeDtoValidator = new TradeDtoValidator();
-        Map<String,String> errors = tradeDtoValidator.validate(tradeDto);
-        if(tradeDtoValidator.hasErrors()){
+        Map<String, String> errors = tradeDtoValidator.validate(tradeDto);
+        if (tradeDtoValidator.hasErrors()) {
             throw new AppException("add trade - trade validation not correct " + errors.toString());
         }
 
-        if(tradeRepository.findByName(tradeDto.getName()).isPresent()){
+        if (tradeRepository.findByName(tradeDto.getName()).isPresent()) {
             throw new AppException("add trade - trade with given name already exists");
         }
 
@@ -44,12 +45,25 @@ public class TradeService {
 
     }
 
-    public List<TradeDto> getAllTrades(){
+    public List<TradeDto> getAllTrades() {
 
         return tradeRepository.findAll().stream()
                 .map(ModelMapper::fromTradeToTradeDto)
                 .collect(Collectors.toList());
 
     }
+
+    public TradeDto editTrade(TradeDto tradeDto) {
+
+        if (tradeDto == null) {
+            throw new AppException("edit trade - trade object null");
+        }
+
+        Trade trade = ModelMapper.fromTradeDtoToTrade(tradeDto);
+        return tradeRepository.addOrUpdate(trade).map(ModelMapper::fromTradeToTradeDto)
+                .orElseThrow(() -> new AppException("editing trade - exception while editing"));
+
+    }
+
 
 }

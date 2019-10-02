@@ -112,4 +112,16 @@ public class CustomerService {
                 .collect(Collectors.toList());
     }
 
+    public CustomerDto editCustomer(CustomerDto customerDto){
+        if(customerDto==null){
+            throw new AppException("edit customer - customer object null");
+        }
+
+        Customer customer = ModelMapper.fromCustomerDtoToCustomer(customerDto);
+        return customerRepository.addOrUpdate(customer)
+                .map(ModelMapper::fromCustomerToCustomerDto)
+                .orElseThrow(() -> new AppException("editing customer - exception while editing customer"));
+
+    }
+
 }
